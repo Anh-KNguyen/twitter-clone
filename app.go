@@ -126,3 +126,7 @@ func (a *App) deleteProduct(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
+
+func (a *App) initializeRoutes() {
+
+}
