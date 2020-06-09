@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -50,4 +51,34 @@ func (a *App) getProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, p)
+}
+
+func respondWithError(w http.ResponseWriter, code int, message string) {
+	respondWithJSON(w, code, map[string]string{"error": message})
+}
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
+}
+
+func (a *App) createProduct(w http.ResponseWriter, r *http.Request) {
+	var p product
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&p); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := p.createProduct(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, p)
+
 }
